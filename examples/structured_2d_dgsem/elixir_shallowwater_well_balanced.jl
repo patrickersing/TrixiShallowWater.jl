@@ -30,7 +30,7 @@ initial_condition = initial_condition_well_balancedness
 # Get the DG approximation space
 
 volume_flux = (flux_wintermeyer_etal, flux_nonconservative_wintermeyer_etal)
-surface_flux = (FluxHydrostaticReconstruction(flux_lax_friedrichs,
+surface_flux = (FluxHydrostaticReconstruction(FluxLaxFriedrichs(max_abs_speed_naive),
                                               hydrostatic_reconstruction_audusse_etal),
                 flux_nonconservative_audusse_etal)
 solver = DGSEM(polydeg = 4, surface_flux = surface_flux,

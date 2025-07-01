@@ -30,7 +30,7 @@ initial_condition = initial_condition_discontinuity
 # Get the DG approximation space
 
 volume_flux = (flux_chan_etal, flux_nonconservative_chan_etal)
-surface_flux = (flux_lax_friedrichs, flux_nonconservative_chan_etal)
+surface_flux = (FluxLaxFriedrichs(max_abs_speed_naive), flux_nonconservative_chan_etal)
 solver = DGSEM(polydeg = 3, surface_flux = surface_flux,
                volume_integral = VolumeIntegralFluxDifferencing(volume_flux))
 

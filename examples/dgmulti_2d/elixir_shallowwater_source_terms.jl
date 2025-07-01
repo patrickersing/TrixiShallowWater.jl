@@ -10,7 +10,7 @@ equations = ShallowWaterEquations2D(gravity = 9.81)
 initial_condition = initial_condition_convergence_test
 
 volume_flux = (flux_wintermeyer_etal, flux_nonconservative_wintermeyer_etal)
-surface_flux = (flux_lax_friedrichs, flux_nonconservative_fjordholm_etal)
+surface_flux = (FluxLaxFriedrichs(max_abs_speed_naive), flux_nonconservative_fjordholm_etal)
 dg = DGMulti(polydeg = 3, element_type = Quad(), approximation_type = SBP(),
              surface_integral = SurfaceIntegralWeakForm(surface_flux),
              volume_integral = VolumeIntegralFluxDifferencing(volume_flux))
