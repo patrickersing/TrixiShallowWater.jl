@@ -119,7 +119,8 @@ boundary_conditions = (x_neg = boundary_condition_inflow,
 # Get the DG approximation space
 
 volume_flux = (flux_wintermeyer_etal, flux_nonconservative_wintermeyer_etal)
-surface_flux = (FluxPlusDissipation(flux_wintermeyer_etal, DissipationLocalLaxFriedrichs()),
+surface_flux = (FluxPlusDissipation(flux_wintermeyer_etal,
+                                    DissipationLocalLaxFriedrichs(max_abs_speed = max_abs_speed_naive)),
                 flux_nonconservative_wintermeyer_etal)
 
 basis = LobattoLegendreBasis(3)

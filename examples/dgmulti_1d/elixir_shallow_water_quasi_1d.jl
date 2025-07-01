@@ -11,7 +11,8 @@ equations = ShallowWaterEquationsQuasi1D(gravity = 9.81)
 initial_condition = initial_condition_convergence_test
 
 volume_flux = (flux_chan_etal, flux_nonconservative_chan_etal)
-surface_flux = (FluxPlusDissipation(flux_chan_etal, DissipationLocalLaxFriedrichs()),
+surface_flux = (FluxPlusDissipation(flux_chan_etal,
+                                    DissipationLocalLaxFriedrichs(max_abs_speed = max_abs_speed_naive)),
                 flux_nonconservative_chan_etal)
 
 dg = DGMulti(polydeg = 4, element_type = Line(), approximation_type = SBP(),

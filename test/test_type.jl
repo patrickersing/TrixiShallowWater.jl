@@ -26,7 +26,7 @@ isdir(outdir) && rm(outdir, recursive = true)
 
             surface_flux_function = (flux_lax_friedrichs,
                                      flux_nonconservative_wintermeyer_etal)
-            dissipation = DissipationLocalLaxFriedrichs()
+            dissipation = DissipationLocalLaxFriedrichs(max_abs_speed = max_abs_speed_naive)
             numflux = FluxHLL()
 
             @test eltype(@inferred initial_condition_convergence_test(x, t, equations)) ==
@@ -120,7 +120,7 @@ isdir(outdir) && rm(outdir, recursive = true)
 
             surface_flux_function = (flux_lax_friedrichs,
                                      flux_nonconservative_wintermeyer_etal)
-            dissipation = DissipationLocalLaxFriedrichs()
+            dissipation = DissipationLocalLaxFriedrichs(max_abs_speed = max_abs_speed_naive)
             numflux = FluxHLL()
 
             @test eltype(@inferred initial_condition_convergence_test(x, t, equations)) ==
@@ -250,7 +250,7 @@ isdir(outdir) && rm(outdir, recursive = true)
             orientation = 1
             normal_direction = normal_ll = normal_rr = SVector(one(RealT))
 
-            dissipation = DissipationLocalLaxFriedrichs()
+            dissipation = DissipationLocalLaxFriedrichs(max_abs_speed = max_abs_speed_naive)
 
             @test eltype(@inferred initial_condition_convergence_test(x, t, equations)) ==
                   RealT

@@ -38,7 +38,8 @@ boundary_condition = boundary_condition_slip_wall
 # Get the DG approximation space
 
 volume_flux = (flux_ersing_etal, flux_nonconservative_ersing_etal)
-surface_flux = (FluxPlusDissipation(flux_ersing_etal, DissipationLocalLaxFriedrichs()),
+surface_flux = (FluxPlusDissipation(flux_ersing_etal,
+                                    DissipationLocalLaxFriedrichs(max_abs_speed = max_abs_speed_naive)),
                 flux_nonconservative_ersing_etal)
 
 basis = LobattoLegendreBasis(3)

@@ -14,7 +14,8 @@ initial_condition = initial_condition_convergence_test
 # Get the DG approximation space
 
 volume_flux = (flux_chan_etal, flux_nonconservative_chan_etal)
-surface_flux = (FluxPlusDissipation(flux_chan_etal, DissipationLocalLaxFriedrichs()),
+surface_flux = (FluxPlusDissipation(flux_chan_etal,
+                                    DissipationLocalLaxFriedrichs(max_abs_speed = max_abs_speed_naive)),
                 flux_nonconservative_chan_etal)
 solver = DGSEM(polydeg = 3, surface_flux = surface_flux,
                volume_integral = VolumeIntegralFluxDifferencing(volume_flux))

@@ -37,7 +37,7 @@ initial_condition = initial_condition_dam_break
 volume_flux = (flux_ersing_etal, flux_nonconservative_ersing_etal)
 solver = DGSEM(polydeg = 3,
                surface_flux = (FluxPlusDissipation(flux_ersing_etal,
-                                                   DissipationLocalLaxFriedrichs()),
+                                                   DissipationLocalLaxFriedrichs(max_abs_speed = max_abs_speed_naive)),
                                flux_nonconservative_ersing_etal),
                volume_integral = VolumeIntegralFluxDifferencing(volume_flux))
 
