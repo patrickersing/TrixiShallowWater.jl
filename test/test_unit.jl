@@ -661,6 +661,14 @@ end
     @test flux_careaga_etal(u, u, 1, equations) ≈ flux(u, 1, equations)
     @test flux_careaga_etal(u, u, 1, equations_lin) ≈ flux(u, 1, equations_lin)
 end
+
+# Test that zeroth order shifted legendre polynomial is constant and that the derivative is zero
+@timed_testset "Shifted Legendre Polynomial" begin
+    # Test for n=0
+    poly, deriv = TrixiShallowWater.shifted_legendre_polynomial_and_derivative(0, 0.1)
+    @test poly ≈ 1
+    @test deriv ≈ 0
+end
 end # Unit tests
 
 end # module
