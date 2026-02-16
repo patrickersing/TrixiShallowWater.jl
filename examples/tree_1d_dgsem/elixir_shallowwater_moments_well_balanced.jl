@@ -6,7 +6,7 @@ using TrixiShallowWater
 # Semidiscretization of the shallow water moment equations to test well-balancedness for a 
 # lake-at-rest configuration with smooth bottom topography and two moments.
 equations = ShallowWaterMomentEquations1D(gravity = 9.812, H0 = 1.75,
-                                                    n_moments = 2)
+                                          n_moments = 2)
 
 function initial_condition_well_balanced(x, t,
                                          equations::Union{ShallowWaterMomentEquations1D,
