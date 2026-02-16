@@ -5,7 +5,7 @@ using TrixiShallowWater
 
 # Semidiscretization of the shallow water moment equations to test well-balancedness for a 
 # lake-at-rest configuration with smooth bottom topography and two moments.
-equations = ShallowWaterLinearizedMomentEquations1D(gravity = 9.812, H0 = 1.75,
+equations = ShallowWaterMomentEquations1D(gravity = 9.812, H0 = 1.75,
                                                     n_moments = 2)
 
 function initial_condition_well_balanced(x, t,
@@ -46,11 +46,11 @@ mesh = TreeMesh(coordinates_min,
                 coordinates_max,
                 initial_refinement_level = 5, # 2^refinement_level
                 n_cells_max = 10_000,
-                periodicity = true)
+                periodicity = false)
 
 # create the semi discretization object
 semi = SemidiscretizationHyperbolic(mesh, equations, initial_condition, solver;
-                                    boundary_conditions = boundary_condition_periodic)
+                                    boundary_conditions = boundary_condition_slip_wall)
 
 ###############################################################################
 # ODE solver
