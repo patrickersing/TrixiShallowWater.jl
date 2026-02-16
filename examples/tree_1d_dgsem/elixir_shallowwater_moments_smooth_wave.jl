@@ -4,7 +4,7 @@ using Trixi
 using TrixiShallowWater
 
 # Semidiscretization of the shallow water moment equations with two moments
-equations = ShallowWaterMomentEquations1D(gravity = 1.0, H0 = 0.0, n_moments = 2)
+equations = ShallowWaterMomentEquations1D(gravity = 1.0, n_moments = 2)
 
 # Initial condition with a smooth wave wave in a periodic domain.
 # See section 4.2 in the paper:

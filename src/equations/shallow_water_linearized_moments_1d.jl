@@ -295,7 +295,7 @@ For details see the paper:
 end
 
 # Specialized `DissipationLocalLaxFriedrichs` to avoid spurious dissipation in the bottom
-# topography. For nonzero bottom topography [`Trixi.DissipationLaxFriedrichsEntropyVariables`](@extref)
+# topography. For discontinuous bottom topography [`Trixi.DissipationLaxFriedrichsEntropyVariables`](@extref)
 # should be used instead as this version is not well-balanced.
 @inline function (dissipation::DissipationLocalLaxFriedrichs)(u_ll,
                                                               u_rr,
