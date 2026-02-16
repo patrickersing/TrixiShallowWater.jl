@@ -1110,8 +1110,20 @@ end # SWE-Exner
     @trixi_testset "elixir_shallowwater_moments_well_balanced.jl" begin
         @test_trixi_include(joinpath(EXAMPLES_DIR,
                                      "elixir_shallowwater_moments_well_balanced.jl"),
-                            l2 = [1.558964211369356e-6, 7.885652493559462e-15, 0.0, 0.0, 1.558964211363346e-6],
-                            linf = [5.84925318880547e-6, 2.4806624420754292e-14, 0.0, 0.0, 5.849253188916492e-6])
+                            l2=[
+                                1.558964211369356e-6,
+                                7.885652493559462e-15,
+                                0.0,
+                                0.0,
+                                1.558964211363346e-6
+                            ],
+                            linf=[
+                                5.84925318880547e-6,
+                                2.4806624420754292e-14,
+                                0.0,
+                                0.0,
+                                5.849253188916492e-6
+                            ])
         # Ensure that we do not have excessive memory allocations
         # (e.g., from type instabilities)
         @test_allocations(Trixi.rhs!, semi, sol, 1000)
@@ -1120,8 +1132,20 @@ end # SWE-Exner
     @trixi_testset "elixir_shallowwater_linearized_moments_well_balanced.jl" begin
         @test_trixi_include(joinpath(EXAMPLES_DIR,
                                      "elixir_shallowwater_moments_well_balanced.jl"),
-                            l2 = [1.558964211369356e-6, 7.885652493559462e-15, 0.0, 0.0, 1.558964211363346e-6],
-                            linf = [5.84925318880547e-6, 2.4806624420754292e-14, 0.0, 0.0, 5.849253188916492e-6],
+                            l2=[
+                                1.558964211369356e-6,
+                                7.885652493559462e-15,
+                                0.0,
+                                0.0,
+                                1.558964211363346e-6
+                            ],
+                            linf=[
+                                5.84925318880547e-6,
+                                2.4806624420754292e-14,
+                                0.0,
+                                0.0,
+                                5.849253188916492e-6
+                            ],
                             equations=ShallowWaterLinearizedMomentEquations1D(gravity = 9.812,
                                                                               H0 = 1.75,
                                                                               n_moments = 2))

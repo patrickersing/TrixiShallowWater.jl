@@ -274,7 +274,7 @@ end
     end
 
     # Compute the moment fluxes
-    f_moments = MArray{nmoments(equations), real(equations)}(2 * ha * v)
+    f_moments = MVector{nmoments(equations), real(equations)}(2 * ha * v)
 
     # Add the moment tensor contributions
     for i in eachmoment(equations),

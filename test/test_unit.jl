@@ -633,6 +633,7 @@ end
                                                              equations)
     end
 end
+
 @timed_testset "Consistency check for SWME dissipation terms" begin
     # Test that for b=constant, the dissipation terms return the same output.
     equations = ShallowWaterMomentEquations1D(gravity = 9.81, n_moments = 2)
@@ -647,6 +648,18 @@ end
     @test diss_lf(u_ll, u_rr, 1, equations) ≈ diss_ec(u_ll, u_rr, 1, equations)
     @test diss_lf(u_ll, u_rr, 1, equations_lin) ≈
           diss_ec(u_ll, u_rr, 1, equations_lin)
+end
+
+# Check consistency for conservative two-point fluxes (f(u, u) = f(u))
+@timed_testset "Consistency check for SWME fluxes" begin
+    equations = ShallowWaterMomentEquations1D(gravity = 9.81, n_moments = 2)
+    equations_lin = ShallowWaterLinearizedMomentEquations1D(gravity = 9.81,
+                                                            n_moments = 2)
+
+    u = SVector(1.0, 0.3, 0.15, 0.15, 0.1)
+
+    @test flux_careaga_etal(u, u, 1, equations) ≈ flux(u, 1, equations)
+    @test flux_careaga_etal(u, u, 1, equations_lin) ≈ flux(u, 1, equations_lin)
 end
 end # Unit tests
 
