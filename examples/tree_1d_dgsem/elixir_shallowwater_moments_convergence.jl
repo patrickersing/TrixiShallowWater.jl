@@ -38,8 +38,7 @@ sum_B = [sum(equations.B[i, j, k] * a[k] * Dx(h * a[j]) for j in 1:n, k in 1:n)
 
 # additional moment equations 
 mom_eqs = [Dt(h * a[i]) + Dx(2 * h * v * a[i] + sum_A[i]) - v * Dx(h * a[i]) + sum_B[i]
-           for
-           i in 1:n]
+           for i in 1:n]
 
 # PDE Source Terms
 eqs = [

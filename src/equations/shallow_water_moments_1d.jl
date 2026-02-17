@@ -59,7 +59,7 @@ struct ShallowWaterMomentEquations1D{NVARS, NMOMENTS, RealT <: Real} <:
     function ShallowWaterMomentEquations1D{NVARS, NMOMENTS, RealT}(gravity::RealT,
                                                                    H0::RealT,
                                                                    n_moments::Integer,
-                                                                   A,
+                                                                   A::Array{RealT, 3},
                                                                    B::Array{RealT, 3},
                                                                    C::Array{RealT, 2},
                                                                    nu::RealT,

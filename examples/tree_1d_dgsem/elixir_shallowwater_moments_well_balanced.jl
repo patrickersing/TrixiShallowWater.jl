@@ -8,9 +8,9 @@ using TrixiShallowWater
 equations = ShallowWaterMomentEquations1D(gravity = 9.812, H0 = 1.75,
                                           n_moments = 2)
 
+# This initial condition can also be used together with `ShallowWaterLinearizedMomentEquations1D`.
 function initial_condition_well_balanced(x, t,
-                                         equations::Union{ShallowWaterMomentEquations1D,
-                                                          ShallowWaterLinearizedMomentEquations1D})
+                                         equations::ShallowWaterMomentEquations1D)
     # Initial lake-at-rest configuration
     H = 1.75
     v = 0.0

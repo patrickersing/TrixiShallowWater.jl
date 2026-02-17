@@ -59,7 +59,7 @@ function compute_A_tensor(B::Array{RealT, 3}) where {RealT}
     A = Array{RealT, 3}(zeros(RealT, N, N, N))  # initialize the A tensor
 
     for i in 1:N, j in 1:N, k in 1:N
-        A[i, j, k] = -(2i + 1) * (B[i, j, k] / (2i + 1) + B[k, j, i] / (2k + 1))
+        A[i, j, k] = -(2 * i + 1) * (B[i, j, k] / (2 * i + 1) + B[k, j, i] / (2 * k + 1))
     end # i, j, k
 
     return A
