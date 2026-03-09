@@ -624,6 +624,12 @@ or jump portion of the non-conservative flux based on the type of the
 nonconservative_type argument, employing multiple dispatch. They are used to
 compute the subcell fluxes in [`Trixi.VolumeIntegralSubcellLimiting`](@extref).
 
+!!! note
+    While `flux_nonconservative_ersing_etal_local_jump` and [`flux_nonconservative_ersing_etal`](@ref)
+    are equivalent at interfaces, the volume formulation for [`Trixi.VolumeIntegralSubcellLimiting`](@extref)
+    differs as `flux_nonconservative_ersing_etal_local_jump` applies the local normal direction 
+    instead of the averaged one.
+
 ## References
 - Rueda-Ramírez, Gassner (2023). A Flux-Differencing Formula for Split-Form Summation By Parts
   Discretizations of Non-Conservative Systems. https://arxiv.org/pdf/2211.14009.pdf.
@@ -653,7 +659,7 @@ end
                                            nonconservative_type::Trixi.NonConservativeLocal,
                                            nonconservative_term::Integer)
     flux_nonconservative_ersing_local_jump(u_ll, u_rr,
-                                           normal_direction::AbstractVector,
+                                           normal_direction_ll::AbstractVector,
                                            equations::ShallowWaterMultiLayerEquations2D,
                                            nonconservative_type::Trixi.NonConservativeLocal,
                                            nonconservative_term::Integer)
@@ -695,7 +701,7 @@ Local part of the nonconservative term needed for the calculation of the non-con
 end
 
 @inline function flux_nonconservative_ersing_etal_local_jump(u_ll,
-                                                             normal_direction::AbstractVector,
+                                                             normal_direction_ll::AbstractVector,
                                                              equations::ShallowWaterMultiLayerEquations2D,
                                                              nonconservative_type::Trixi.NonConservativeLocal,
                                                              nonconservative_term::Integer)
@@ -714,7 +720,9 @@ end
         f_h = zero(real(equations))
         f_hv = g * h_ll[i]
 
-        setlayer!(f, f_h, f_hv, f_hv, i, equations)
+        setlayer!(f, f_h, f_hv * normal_direction_ll[1], f_hv * normal_direction_ll[2],
+                  i,
+                  equations)
     end
 
     return SVector(f)
@@ -812,8 +820,8 @@ end
                 f_hv += h_jump[j]
             end
         end
-        setlayer!(f, f_h, f_hv * normal_direction[1],
-                  f_hv * normal_direction[2], i, equations)
+        setlayer!(f, f_h, f_hv,
+                  f_hv, i, equations)
     end
 
     return SVector(f)

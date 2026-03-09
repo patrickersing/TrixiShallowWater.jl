@@ -165,6 +165,25 @@ end # SWE
         @test_allocations(Trixi.rhs!, semi, sol, 15000)
     end
 
+    @trixi_testset "elixir_shallowwater_multilayer_convergence_sc_subcell_curved.jl" begin
+        @test_trixi_include(joinpath(EXAMPLES_DIR,
+                                     "elixir_shallowwater_multilayer_convergence_sc_subcell_curved.jl"),
+                            l2=[
+                                0.00013275624153302434,
+                                0.0001586600356395913,
+                                0.000158660035639501,
+                                2.9583315272612922e-5
+                            ],
+                            linf=[
+                                0.0007544272991792944,
+                                0.0007250877164874936,
+                                0.00072508771648927,
+                                9.31948456051046e-5
+                            ])
+        # Allocation testing is disabled as the symbolic source term computation is known to cause
+        # allocations.
+    end
+
     @trixi_testset "elixir_shallowwater_multilayer_well_balanced_wet_dry_nonconforming.jl" begin
         @test_trixi_include(joinpath(EXAMPLES_DIR,
                                      "elixir_shallowwater_multilayer_well_balanced_wet_dry_nonconforming.jl"),
@@ -311,6 +330,30 @@ end # SWE
                             # with the two-sided limiter on different architectures.
                             # See https://github.com/trixi-framework/Trixi.jl/pull/2007
                             atol=5e-4)
+        # Ensure that we do not have excessive memory allocations
+        # (e.g., from type instabilities)
+        # Larger values for allowed allocations due to usage of custom
+        # integrator which are not *recorded* for the methods from
+        # OrdinaryDiffEq.jl
+        # Corresponding issue: https://github.com/trixi-framework/Trixi.jl/issues/1877
+        @test_allocations(Trixi.rhs!, semi, sol, 15000)
+    end
+
+    @trixi_testset "elixir_shallowwater_multilayer_ec_sc_subcell.jl" begin
+        @test_trixi_include(joinpath(EXAMPLES_DIR,
+                                     "elixir_shallowwater_multilayer_ec_sc_subcell.jl"),
+                            l2=[
+                                0.04338581073333642,
+                                0.12068863355590975,
+                                0.12068863355590971,
+                                7.906244739074657e-18
+                            ],
+                            linf=[
+                                0.2550462084344076,
+                                0.42004261172048024,
+                                0.4200426117204863,
+                                1.1102230246251565e-16
+                            ])
         # Ensure that we do not have excessive memory allocations
         # (e.g., from type instabilities)
         # Larger values for allowed allocations due to usage of custom
