@@ -10,6 +10,7 @@ for human readability.
 
 #### Added
 - `ShallowWaterExner` extended to 2D curvilinear meshes ([#159]).
+- New equation type `HyperbolicSainteMarieEquations1D` has been added ([#135]).
 
 #### Changed
 - Trixi.jl v0.17.0 is now required, resulting in changes to the signature of `NonConservative` jump terms ([#160]).
