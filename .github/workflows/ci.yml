@@ -78,6 +78,7 @@ jobs:
         uses: julia-actions/julia-runtest@v1
         with:
           coverage: true
+          optimize: 0
         env:
           PYTHON: ""
           TRIXI_TEST: ${{ matrix.trixi_test }}
