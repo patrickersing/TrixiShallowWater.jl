@@ -78,7 +78,6 @@ coordinates_max = 1.0
 
 mesh = TreeMesh(coordinates_min, coordinates_max,
                 initial_refinement_level = 6,
-                n_cells_max = 10_000,
                 periodicity = true)
 
 # create the semi discretization object
@@ -123,7 +122,7 @@ sol = solve(ode, SSPRK43(; stage_limiter!); dt = 1.0,
 # right of the discontinuous bottom topography `H0_lower = 1.5`.
 
 # Declare a special version of the function to compute the lake-at-rest error
-# OBS! The reference water height values are hardcoded for convenience.
+# Note: The reference water height values are hardcoded for convenience.
 function lake_at_rest_error_two_level(u, x, equations::ShallowWaterEquations1D)
     h, _, b = u
 

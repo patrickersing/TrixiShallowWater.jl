@@ -17,7 +17,7 @@ isdir(outdir) && rm(outdir, recursive = true)
 
 # Run tests for TreeMesh
 # Shallow water wet/dry 1D
-@trixi_testset "elixir_shallowwater_ec.jl" begin
+@trixi_testset "TreeMesh1D: elixir_shallowwater_ec.jl" begin
     @test_trixi_include(joinpath(EXAMPLES_DIR, "tree_1d_dgsem",
                                  "elixir_shallowwater_ec.jl"),
                         l2=[
@@ -33,7 +33,7 @@ isdir(outdir) && rm(outdir, recursive = true)
                         tspan=(0.0, 0.25))
     # Ensure that we do not have excessive memory allocations
     # (e.g., from type instabilities)
-    @test_allocations(Trixi.rhs!, semi, sol, 1000)
+    @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
 end
 
 @trixi_testset "TreeMesh1D: elixir_shallowwater_well_balanced_nonperiodic.jl with wall boundary" begin
@@ -53,7 +53,7 @@ end
                         boundary_condition=boundary_condition_slip_wall)
     # Ensure that we do not have excessive memory allocations
     # (e.g., from type instabilities)
-    @test_allocations(Trixi.rhs!, semi, sol, 1000)
+    @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
 end
 
 # Shallow water wet/dry 2D
@@ -62,21 +62,21 @@ end
     @test_trixi_include(joinpath(EXAMPLES_DIR, "tree_2d_dgsem",
                                  "elixir_shallowwater_conical_island.jl"),
                         l2=[
-                            0.045928568956367245,
-                            0.16446498697148945,
-                            0.16446498697148945,
+                            0.045926902036577455,
+                            0.16446330188638916,
+                            0.1644633018863892,
                             0.0011537702354532694
                         ],
                         linf=[
-                            0.21098104635388315,
-                            0.9501826412445212,
-                            0.9501826412445218,
+                            0.21098104581979782,
+                            0.9501826377490934,
+                            0.9501826377490947,
                             0.021790250683516282
                         ],
                         tspan=(0.0, 0.025))
     # Ensure that we do not have excessive memory allocations
     # (e.g., from type instabilities)
-    @test_allocations(Trixi.rhs!, semi, sol, 1000)
+    @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
 end
 # Unstructured2D
 @trixi_testset "Unstructured2D: elixir_shallowwater_wall_bc_shockcapturing.jl" begin
@@ -100,30 +100,30 @@ end
                                       flux_nonconservative_audusse_etal))
     # Ensure that we do not have excessive memory allocations
     # (e.g., from type instabilities)
-    @test_allocations(Trixi.rhs!, semi, sol, 1000)
+    @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
 end
 # Structured2D
 @trixi_testset "Structured2D: elixir_shallowwater_conical_island.jl" begin
     @test_trixi_include(joinpath(EXAMPLES_DIR, "structured_2d_dgsem",
                                  "elixir_shallowwater_conical_island.jl"),
                         l2=[
-                            0.04592856895636503,
-                            0.16446498697148132,
-                            0.16446498697148126,
+                            0.04592690203657511,
+                            0.16446330188638156,
+                            0.16446330188638167,
                             0.0011537702354532122
                         ],
                         linf=[
-                            0.21098104635388404,
-                            0.950182641244522,
-                            0.950182641244521,
+                            0.21098104581979793,
+                            0.950182637749094,
+                            0.9501826377490933,
                             0.021790250683516296
                         ],
                         tspan=(0.0, 0.025))
     # Ensure that we do not have excessive memory allocations
     # (e.g., from type instabilities)
-    @test_allocations(Trixi.rhs!, semi, sol, 1000)
+    @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
 end
-# P4estMesh2D
+# P4estMesh2D - AMR
 @trixi_testset "P4estMesh2D: elixir_shallowwater_perturbation_amr.jl" begin
     @test_trixi_include(joinpath(EXAMPLES_DIR, "p4est_2d_dgsem",
                                  "elixir_shallowwater_perturbation_amr.jl"),
@@ -142,7 +142,27 @@ end
                         tspan=(0.0, 0.025))
     # Ensure that we do not have excessive memory allocations
     # (e.g., from type instabilities)
-    @test_allocations(Trixi.rhs!, semi, sol, 1000)
+    @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
+end
+# P4estMesh2D - AMR with positivity limiter
+@trixi_testset "P4estMesh2D: elixir_shallowwater_multilayer_perturbation_wet_dry_amr.jl" begin
+    @test_trixi_include(joinpath(EXAMPLES_DIR, "p4est_2d_dgsem",
+                                 "elixir_shallowwater_multilayer_perturbation_wet_dry_amr.jl"),
+                        l2=[
+                            0.4177955194235321,
+                            0.2818773677696145,
+                            0.33178075151092923,
+                            0.45643505879802193],
+                        linf=[
+                            2.129878820442652,
+                            3.292431218004944,
+                            3.3701108685790135,
+                            0.7495177590247986],
+                        tspan=(0.0, 0.01))
+
+    # Ensure that we do not have excessive memory allocations
+    # (e.g., from type instabilities)
+    @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
 end
 # P4estMesh2D - Subcell limiting
 @trixi_testset "P4estMesh2D: elixir_shallowwater_multilayer_blast_wet_dry_sc_subcell.jl" begin
@@ -171,7 +191,7 @@ end
     # integrator which are not *recorded* for the methods from
     # OrdinaryDiffEq.jl
     # Corresponding issue: https://github.com/trixi-framework/Trixi.jl/issues/1877
-    @test_allocations(Trixi.rhs!, semi, sol, 15000)
+    @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 15000)
 end
 
 # Clean up afterwards: delete output directory

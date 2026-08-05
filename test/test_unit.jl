@@ -15,8 +15,8 @@ isdir(outdir) && rm(outdir, recursive = true)
 #! format: noindent
 
 @timed_testset "Printing indicators/controllers" begin
-    # OBS! Constructing indicators/controllers using the parameters below doesn't make sense. It's
-    # just useful to run basic tests of `show` methods.
+    # Note: Constructing indicators/controllers using the parameters below doesn't make sense.
+    # It's just useful to run basic tests of `show` methods.
 
     indicator_hg_swe = IndicatorHennemannGassnerShallowWater(1.0, 0.0, true, "variable",
                                                              "cache")
@@ -187,6 +187,10 @@ end
             @test Trixi.flux(cons_vars, 2, equations) ≈
                   flux_ersing_etal(cons_vars, cons_vars, 2, equations)
 
+            normal_direction = SVector(0.01812947482438032, -0.20620930120920572)
+            @test Trixi.flux(cons_vars, normal_direction, equations) ≈
+                  flux_ersing_etal(cons_vars, cons_vars, normal_direction, equations)
+
             # Test consistency
             @test water_sediment_height(prim_vars, equations) ≈
                   equations.gravity * h * h_b
@@ -219,6 +223,32 @@ end
             entropy_vars = cons2entropy(cons_vars, equations)
             @test entropy_vars[1:(end - 1)] ≈
                   Trixi.ForwardDiff.gradient(u -> entropy(u, equations), cons_vars)[1:(end - 1)]
+        end
+    end
+
+    @timed_testset "HyperbolicSainteMarieEquations" begin
+        H, v, w, p, b = (1.0, 0.3, 0.15, 0.15, 0.1)
+
+        let equations = HyperbolicSainteMarieEquations1D(gravity = 9.81, h_ref = 2.0,
+                                                         alpha = 3.0)
+            # Test conversion between primitive and conservative variables
+            prim_vars = SVector(H, v, w, p, b)
+            cons_vars = prim2cons(prim_vars, equations)
+            @test prim_vars ≈ cons2prim(cons_vars, equations)
+
+            # The total energy is the mathematical entropy
+            @test energy_total(cons_vars, equations) ≈ entropy(cons_vars, equations)
+
+            # Test conversion from conservative to entropy variables
+            entropy_vars = cons2entropy(cons_vars, equations)
+            @test entropy_vars[1:(end - 1)] ≈
+                  Trixi.ForwardDiff.gradient(u -> entropy(u, equations), cons_vars)[1:(end - 1)]
+
+            # Test flux consistencies
+            alpha_coefficients = (1 / 2, 1.0, 2 / 3)
+            surface_flux = FluxArtianoEtal(alpha_coefficients...)
+            @test Trixi.flux(cons_vars, 1, equations) ≈
+                  surface_flux(cons_vars, cons_vars, 1, equations)
         end
     end
 end
@@ -309,6 +339,39 @@ end
     end
 end
 
+@timed_testset "Consistency check for entropy conservative fluxes with normal direction: SWE 1D" begin
+    equations = ShallowWaterEquations1D(gravity = 9.81)
+    normal_directions = [SVector(1.0),
+        SVector(-1.0),
+        SVector(0.5),
+        SVector(-1.2)]
+
+    u = prim2cons(SVector(3.5, 0.25, 0.4), equations)
+    u_ll = prim2cons(SVector(3.5, 0.25, 0.4), equations)
+    u_rr = prim2cons(SVector(2.5, -0.1, 0.3), equations)
+
+    for normal_direction in normal_directions
+        # Consistency with the physical flux in the normal direction
+        @test flux_wintermeyer_etal(u, u, normal_direction, equations) ≈
+              flux(u, normal_direction, equations)
+        @test flux_fjordholm_etal(u, u, normal_direction, equations) ≈
+              flux(u, normal_direction, equations)
+        # The 1D flux in normal direction is the orientation flux scaled by the normal
+        @test flux_wintermeyer_etal(u_ll, u_rr, normal_direction, equations) ≈
+              normal_direction[1] * flux_wintermeyer_etal(u_ll, u_rr, 1, equations)
+        @test flux_fjordholm_etal(u_ll, u_rr, normal_direction, equations) ≈
+              normal_direction[1] * flux_fjordholm_etal(u_ll, u_rr, 1, equations)
+        @test flux_nonconservative_wintermeyer_etal(u_ll, u_rr, normal_direction,
+                                                    equations) ≈
+              normal_direction[1] *
+              flux_nonconservative_wintermeyer_etal(u_ll, u_rr, 1, equations)
+        @test flux_nonconservative_fjordholm_etal(u_ll, u_rr, normal_direction,
+                                                  equations) ≈
+              normal_direction[1] *
+              flux_nonconservative_fjordholm_etal(u_ll, u_rr, 1, equations)
+    end
+end
+
 @testset "Velocity functions for different equations" begin
     v1, v2 = pi, exp(1.0) # use pi, exp to test with non-trivial numbers
     v_vector = SVector(v1, v2)
@@ -330,6 +393,11 @@ end
         @test isapprox(velocity(u, orientation, shallow_water_2d),
                        v_vector[orientation])
     end
+
+    hyperbolic_sainte_marie = HyperbolicSainteMarieEquations1D(; gravity)
+    p = 10.0
+    u = prim2cons(SVector(H, v1, v2, p, b), hyperbolic_sainte_marie)
+    @test isapprox(velocity(u, hyperbolic_sainte_marie), v1)
 end
 
 @timed_testset "Exception check Cardano's formula" begin
@@ -346,7 +414,11 @@ end
                                                  rho_s = 1.0, porosity = 0.4,
                                                  sediment_model = GrassModel(A_g = 0.01))
         u = SVector(-1.1, 4.5, -3.5, 1.2)
+        normal_direction = SVector(0.01812947482438032, -0.20620930120920572)
         @test_throws error_message TrixiShallowWater.eigvals_cardano(u, 1, equations)
+        @test_throws error_message TrixiShallowWater.eigvals_cardano(u,
+                                                                     normal_direction,
+                                                                     equations)
     end
 end
 
@@ -515,6 +587,102 @@ end
 
         @test R * R_inv ≈ [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1]
         @test A ≈ R * Λ * R_inv
+
+        # Check in the normal direction
+
+        normal_direction = SVector(0.01812947482438032, -0.20620930120920572)
+
+        norm_ = Trixi.norm(normal_direction)
+        normal = normal_direction / norm_
+        n1, n2 = normal
+
+        # Get the velocities
+        v1, v2 = TrixiShallowWater.velocity(u, equations)
+        vn = n1 * v1 + n2 * v2
+        vt = -n2 * v1 + n1 * v2
+
+        # Compute the effective sediment height at the averaged solution state
+        h_s = TrixiShallowWater.effective_sediment_height(u, equations)
+
+        # Compute gradients of q_s1 and q_s2 using automatic differentiation.
+        # Introduces a closure to make them a function of u only. This is necessary since the
+        # gradient function only accepts functions of one variable.
+        dq_s1_dh, dq_s1_dhv1, dq_s1_dhv2, _ = Trixi.ForwardDiff.gradient(u -> TrixiShallowWater.sediment_discharge(u,
+                                                                                                                   equations)[1],
+                                                                         u)
+        dq_s2_dh, dq_s2_dhv1, dq_s2_dhv2, _ = Trixi.ForwardDiff.gradient(u -> TrixiShallowWater.sediment_discharge(u,
+                                                                                                                   equations)[2],
+                                                                         u)
+
+        # Compute the normal gradients
+        dq_sn_dh = n1 * dq_s1_dh + n2 * dq_s2_dh
+        dq_sn_dhv1 = n1 * dq_s1_dhv1 + n2 * dq_s2_dhv1
+        dq_sn_dhv2 = n1 * dq_s1_dhv2 + n2 * dq_s2_dhv2
+
+        # flux Jacobian
+        A = [[0 n1 n2 0];
+             [(g * n1 * (h + h_s) - v1 * vn) (vn + n1 * v1) (n2 * v1) (g * n1 *
+                                                                       (h + h_s / r))]
+             [(g * n2 * (h + h_s) - v2 * vn) (n1 * v2) (vn + n2 * v2) (g * n2 *
+                                                                       (h + h_s / r))]
+             [dq_sn_dh dq_sn_dhv1 dq_sn_dhv2 0]]
+
+        # Compute the nontrivial eigenvalues using Cardano's formula
+        # The known eigenvalue of `vn` associated with the contact wave is returned last.
+        λ1, λ2, λ3, λ4 = TrixiShallowWater.eigvals_cardano(u, normal_direction,
+                                                           equations)
+
+        # Precompute some common expressions
+        c1 = g * (h + h_s)
+        c2 = g * (h + h_s / r)
+        kappa = (dq_sn_dh + vn * (n1 * dq_sn_dhv1 + n2 * dq_sn_dhv2 + c1 / c2)) /
+                (n1 * dq_sn_dhv2 - n2 * dq_sn_dhv1)
+
+        # Eigenvector matrix
+        r41 = ((vn - λ1)^2 - c1) / c2
+        r42 = ((vn - λ2)^2 - c1) / c2
+        r43 = ((vn - λ3)^2 - c1) / c2
+
+        # Build the right eigenvector matrix and its inverse in the normal direction
+        R = [[1 1 1 1];
+             [(λ1 * n1 - n2 * vt) (λ2 * n1 - n2 * vt) (λ3 * n1 - n2 * vt) (n1 * vn +
+                                                                           n2 * kappa)]
+             [(λ1 * n2 + n1 * vt) (λ2 * n2 + n1 * vt) (λ3 * n2 + n1 * vt) (n2 * vn -
+                                                                           n1 * kappa)]
+             [r41 r42 r43 -c1 / c2]]
+
+        # Inverse eigenvector matrix
+        d1 = (λ1 - λ2) * (λ1 - λ3)
+        d2 = (λ2 - λ1) * (λ2 - λ3)
+        d3 = (λ3 - λ2) * (λ3 - λ1)
+
+        D = vt + kappa
+
+        # first column
+        r_inv11 = -(vt * (vn - λ2) * (vn - λ3) + D * (vn^2 - λ2 * λ3 - c1)) / (d1 * D)
+        r_inv21 = -(vt * (vn - λ1) * (vn - λ3) + D * (vn^2 - λ1 * λ3 - c1)) / (d2 * D)
+        r_inv31 = -(vt * (vn - λ1) * (vn - λ2) + D * (vn^2 - λ1 * λ2 - c1)) / (d3 * D)
+
+        # second column
+        r_inv12 = (-n2 * (vn - λ2) * (vn - λ3) + n1 * D * (2 * vn - λ2 - λ3)) / (d1 * D)
+        r_inv22 = (-n2 * (vn - λ1) * (vn - λ3) + n1 * D * (2 * vn - λ1 - λ3)) / (d2 * D)
+        r_inv32 = (-n2 * (vn - λ1) * (vn - λ2) + n1 * D * (2 * vn - λ2 - λ1)) / (d3 * D)
+
+        # third column
+        r_inv13 = (n1 * (vn - λ2) * (vn - λ3) + n2 * D * (2 * vn - λ2 - λ3)) / (d1 * D)
+        r_inv23 = (n1 * (vn - λ1) * (vn - λ3) + n2 * D * (2 * vn - λ1 - λ3)) / (d2 * D)
+        r_inv33 = (n1 * (vn - λ1) * (vn - λ2) + n2 * D * (2 * vn - λ2 - λ1)) / (d3 * D)
+
+        R_inv = [r_inv11 r_inv12 r_inv13 c2/d1;
+                 r_inv21 r_inv22 r_inv23 c2/d2;
+                 r_inv31 r_inv32 r_inv33 c2/d3;
+                 vt/D n2/D -n1/D 0]
+
+        # Eigenvalue value matrix
+        Λ = [λ1 0 0 0; 0 λ2 0 0; 0 0 λ3 0; 0 0 0 λ4]
+
+        @test R * R_inv ≈ [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1]
+        @test A ≈ R * Λ * R_inv
     end
 end
 
@@ -531,6 +699,29 @@ end
         cons_vars = prim2cons(SVector(H, v1, v2, b), equations)
         @test waterheight_pressure(cons_vars, equations) ≈
               waterheight(cons_vars, equations) * pressure(cons_vars, equations)
+    end
+end
+
+@timed_testset "Constructor for rain/infiltration source term" begin
+    let equations = ShallowWaterEquations1D(gravity = 9.81)
+        precipitation_rate = 0.1
+        infiltration_model = HortonModel(0.2, 0.1, 0.1)
+        ref_source_term = SourceTermsRain((x, t) -> 0.1, infiltration_model)
+        x = 0.3
+        t = 0.2
+        u = SVector(1.0, 0.5, 0.1)
+
+        @test SourceTermsRain(0.1, infiltration_model, equations)(u, x, t, equations) ≈
+              ref_source_term(u, x, t, equations)
+        @test SourceTermsRain((x, t) -> 0.1, infiltration_model, equations)(u, x, t,
+                                                                            equations) ≈
+              ref_source_term(u, x, t, equations)
+        @test_throws ArgumentError SourceTermsRain((x, t) -> 0.1f0, infiltration_model,
+                                                   equations)(u, x, t,
+                                                              equations)≈ref_source_term(u,
+                                                                                         x,
+                                                                                         t,
+                                                                                         equations)
     end
 end
 
@@ -802,7 +993,7 @@ end
     equations_lin = ShallowWaterLinearizedMomentEquations1D(gravity = 9.81,
                                                             n_moments = 2)
 
-    u = SVector(1.0, 0.3, 0.15, 0.15, 0.1)
+    u = SVector(0.7, 0.3, 0.15, 0.15, 0.1)
 
     @test flux_careaga_etal(u, u, 1, equations) ≈ flux(u, 1, equations)
     @test flux_careaga_etal(u, u, 1, equations_lin) ≈ flux(u, 1, equations_lin)
@@ -820,7 +1011,7 @@ end
 @testset "Consistency check for DissipationLaxFriedrichsEntropyVariables" begin
     @timed_testset "ShallowWaterEquations2D" begin
         equations = ShallowWaterEquations2D(gravity = 9.81)
-        u_ll = SVector(1.0, 0.3, 0.2, 0.2)
+        u_ll = SVector(0.7, 0.3, 0.2, 0.2)
         u_rr = SVector(1.5, 0.1, -0.1, 0.2)
         @test DissipationLaxFriedrichsEntropyVariables()(u_ll, u_rr, 1, equations) ≈
               DissipationLocalLaxFriedrichs()(u_ll, u_rr, 1, equations)
@@ -828,13 +1019,13 @@ end
 
     @timed_testset "ShalloWaterMultiLayerEquations2D (single layer)" begin
         equations = ShallowWaterMultiLayerEquations2D(gravity = 9.81, rhos = (1.0))
-        u_ll = SVector(1.0, 0.3, 0.2, 0.1)
+        u_ll = SVector(0.7, 0.3, 0.2, 0.1)
         u_rr = SVector(1.5, 0.1, -0.1, 0.1)
         @test DissipationLaxFriedrichsEntropyVariables()(u_ll, u_rr, 1, equations) ≈
               DissipationLocalLaxFriedrichs()(u_ll, u_rr, 1, equations)
 
         # For a single layer the dissipation should be consistent with the 2D SWE
-        u_ll = SVector(1.0, 0.3, 0.2, 0.1)
+        u_ll = SVector(0.7, 0.3, 0.2, 0.1)
         u_rr = SVector(1.5, 0.1, -0.1, 0.2)
         equations_swe = ShallowWaterEquations2D(gravity = 9.81)
         @test DissipationLaxFriedrichsEntropyVariables()(u_ll, u_rr, 1, equations) ≈
@@ -845,7 +1036,7 @@ end
         equations = ShallowWaterMomentEquations1D(gravity = 9.81, n_moments = 2)
         equations_lin = ShallowWaterLinearizedMomentEquations1D(gravity = 9.81,
                                                                 n_moments = 2)
-        u_ll = SVector(1.0, 0.3, 0.15, 0.15, 0.1)
+        u_ll = SVector(0.7, 0.3, 0.15, 0.15, 0.1)
         u_rr = SVector(1.5, 0.1, 0.25, 0.35, 0.1)
 
         diss_lf = DissipationLocalLaxFriedrichs()

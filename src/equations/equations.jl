@@ -20,6 +20,7 @@ end
 
 include("shallow_water_quasi_1d.jl")
 
+include("infiltration_models.jl")
 include("shallow_water_1d.jl")
 include("shallow_water_2d.jl")
 
@@ -89,6 +90,8 @@ Retrieve the number of moments from an equation instance of the `AbstractMomentE
                                                                                     }
     NMOMENTS
 end
+
+include("hyperbolic_sainte_marie_1d.jl")
 
 # TODO: Add suitable default thresholds for Float32
 # Provide default thresholds dependent on number format (Currently default thresholds are only provided

@@ -81,7 +81,6 @@ coordinates_min = (0.0, 0.0)
 coordinates_max = (1.0, 1.0)
 mesh = TreeMesh(coordinates_min, coordinates_max,
                 initial_refinement_level = 3,
-                n_cells_max = 10_000,
                 periodicity = true)
 
 # Create the semi discretization object
@@ -159,7 +158,7 @@ sol = Trixi.solve(ode, Trixi.SimpleSSPRK33(stage_callbacks = stage_callbacks);
 # right of the discontinuous bottom topography `H0_lower = 1.5`.
 
 # Declare a special version of the function to compute the lake-at-rest error
-# OBS! The reference water height values are hardcoded for convenience.
+# Note: The reference water height values are hardcoded for convenience.
 function lake_at_rest_error_two_level(u, x, equations::ShallowWaterMultiLayerEquations2D)
     h, _, _, b = u
 

@@ -34,7 +34,7 @@ isdir(outdir) && rm(outdir, recursive = true)
                             tspan=(0.0, 0.1))
         # Ensure that we do not have excessive memory allocations
         # (e.g., from type instabilities)
-        @test_allocations(Trixi.rhs!, semi, sol, 1000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
     end
 
     @trixi_testset "elixir_shallowwater_well_balanced_nonconforming.jl" begin
@@ -56,7 +56,7 @@ isdir(outdir) && rm(outdir, recursive = true)
                             atol=1e-10)
         # Ensure that we do not have excessive memory allocations
         # (e.g., from type instabilities)
-        @test_allocations(Trixi.rhs!, semi, sol, 1000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
     end
 
     @trixi_testset "elixir_shallowwater_perturbation_amr.jl" begin
@@ -77,7 +77,7 @@ isdir(outdir) && rm(outdir, recursive = true)
                             tspan=(0.0, 0.025))
         # Ensure that we do not have excessive memory allocations
         # (e.g., from type instabilities)
-        @test_allocations(Trixi.rhs!, semi, sol, 1000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
     end
 
     @trixi_testset "elixir_shallowwater_well_balanced_wet_dry_nonconforming.jl" begin
@@ -99,31 +99,54 @@ isdir(outdir) && rm(outdir, recursive = true)
                             atol=1e-10)
         # Ensure that we do not have excessive memory allocations
         # (e.g., from type instabilities)
-        @test_allocations(Trixi.rhs!, semi, sol, 1000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
     end
 
     # Note, these values may change as the functionality of well-balanced mortars
     # with AMR and wet/dry are further developed according to the issue
     # https://github.com/trixi-framework/TrixiShallowWater.jl/issues/77
+    # This is run longer to activate the pieces of the refine portion of the limiter
     @trixi_testset "elixir_shallowwater_perturbation_wet_dry_amr.jl" begin
         @test_trixi_include(joinpath(EXAMPLES_DIR,
                                      "elixir_shallowwater_perturbation_wet_dry_amr.jl"),
                             l2=[
-                                0.399907298565006,
-                                0.3899824006669886,
-                                0.44130722321781896,
-                                0.4564350570616199
+                                0.38992332005657065,
+                                0.2658037399348242,
+                                0.27166206980738195,
+                                0.45643510424305106
                             ],
                             linf=[
-                                1.3905078647694498,
-                                3.3601802680830555,
-                                3.576650520299362,
+                                2.030377008431841,
+                                1.930801096724945,
+                                2.173823340700309,
                                 0.7495177590247986
                             ],
-                            tspan=(0.0, 0.025))
+                            tspan=(0.0, 0.121))
         # Ensure that we do not have excessive memory allocations
         # (e.g., from type instabilities)
-        @test_allocations(Trixi.rhs!, semi, sol, 1000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
+    end
+
+    @trixi_testset "elixir_shallowwater_rainfall_inclined_plane.jl" begin
+        @test_trixi_include(joinpath(EXAMPLES_DIR,
+                                     "elixir_shallowwater_rainfall_inclined_plane.jl"),
+                            l2=[
+                                0.00032207028548645125,
+                                2.30277557795753e-6,
+                                4.44997187575836e-19,
+                                1.8433475390376417e-15
+                            ],
+                            linf=[
+                                0.000324115924751592,
+                                2.3248063411922284e-6,
+                                1.9913550038729716e-17,
+                                8.881784197001252e-15
+                            ],
+                            precipitation_rate=(x, t) -> 1e-3 * t,
+                            tspan=(0.0, 1.0))
+        # Ensure that we do not have excessive memory allocations
+        # (e.g., from type instabilities)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
     end
 end # SWE
 
@@ -162,7 +185,7 @@ end # SWE
         # integrator which are not *recorded* for the methods from
         # OrdinaryDiffEq.jl
         # Corresponding issue: https://github.com/trixi-framework/Trixi.jl/issues/1877
-        @test_allocations(Trixi.rhs!, semi, sol, 15000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 15000)
     end
 
     @trixi_testset "elixir_shallowwater_multilayer_convergence_sc_subcell_curved.jl" begin
@@ -201,7 +224,7 @@ end # SWE
                             atol=1e-10)
         # Ensure that we do not have excessive memory allocations
         # (e.g., from type instabilities)
-        @test_allocations(Trixi.rhs!, semi, sol, 1000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
     end
 
     # Note, these values may change as the functionality of well-balanced mortars
@@ -224,7 +247,7 @@ end # SWE
 
         # Ensure that we do not have excessive memory allocations
         # (e.g., from type instabilities)
-        @test_allocations(Trixi.rhs!, semi, sol, 1000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
     end
 
     # Note, complex example that uses TrixiBottomTopography.jl to approximate
@@ -249,28 +272,28 @@ end # SWE
 
         # Ensure that we do not have excessive memory allocations
         # (e.g., from type instabilities)
-        @test_allocations(Trixi.rhs!, semi, sol, 1000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
     end
 
     @trixi_testset "elixir_shallowwater_multilayer_three_mound_dam_break_amr.jl" begin
         @test_trixi_include(joinpath(EXAMPLES_DIR,
                                      "elixir_shallowwater_multilayer_three_mound_dam_break_amr.jl"),
                             l2=[
-                                0.1307018038119991,
-                                0.35570420514229945,
-                                9.300123179370889e-14,
-                                0.0019606480801663984],
+                                0.13070149058594405,
+                                0.3557070936603237,
+                                3.391658168396266e-14,
+                                0.001960648080166412],
                             linf=[
-                                1.1241023021698624,
-                                2.4980720394823885,
-                                1.324711724284584e-11,
+                                1.1241019512063912,
+                                2.4986126972245994,
+                                3.782627199174957e-12,
                                 0.044079775502972124],
                             tspan=(0.0, 0.3),
                             atol=1e-10)
 
         # Ensure that we do not have excessive memory allocations
         # (e.g., from type instabilities)
-        @test_allocations(Trixi.rhs!, semi, sol, 1000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
     end
 
     @trixi_testset "elixir_shallowwater_multilayer_blast_wet_dry_sc_subcell.jl" begin
@@ -299,7 +322,7 @@ end # SWE
         # integrator which are not *recorded* for the methods from
         # OrdinaryDiffEq.jl
         # Corresponding issue: https://github.com/trixi-framework/Trixi.jl/issues/1877
-        @test_allocations(Trixi.rhs!, semi, sol, 15000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 15000)
     end
 
     @trixi_testset "elixir_shallowwater_multilayer_blast_wet_dry_sc_subcell with periodic BC.jl" begin
@@ -336,7 +359,7 @@ end # SWE
         # integrator which are not *recorded* for the methods from
         # OrdinaryDiffEq.jl
         # Corresponding issue: https://github.com/trixi-framework/Trixi.jl/issues/1877
-        @test_allocations(Trixi.rhs!, semi, sol, 15000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 15000)
     end
 
     @trixi_testset "elixir_shallowwater_multilayer_ec_sc_subcell.jl" begin
@@ -360,9 +383,77 @@ end # SWE
         # integrator which are not *recorded* for the methods from
         # OrdinaryDiffEq.jl
         # Corresponding issue: https://github.com/trixi-framework/Trixi.jl/issues/1877
-        @test_allocations(Trixi.rhs!, semi, sol, 15000)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 15000)
     end
 end # MLSWE
+
+@testset "Shallow Water Exner" begin
+    @trixi_testset "elixir_shallowwater_exner_convergence_grass.jl" begin
+        @test_trixi_include(joinpath(EXAMPLES_DIR,
+                                     "elixir_shallowwater_exner_convergence_grass.jl"),
+                            l2=[
+                                0.0007843486672958833,
+                                0.006981545959119388,
+                                0.007421898782394062,
+                                0.00029960154134387536
+                            ],
+                            linf=[
+                                0.007656547860054097,
+                                0.0787603790906501,
+                                0.10597723748192145,
+                                0.0013988745083841625
+                            ],
+                            tspan=(0.0, 0.1))
+
+        # Ensure that we do not have excessive memory allocations
+        # (e.g., from type instabilities)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
+    end
+
+    @trixi_testset "elixir_shallowwater_exner_ec_mpm.jl" begin
+        @test_trixi_include(joinpath(EXAMPLES_DIR,
+                                     "elixir_shallowwater_exner_ec_mpm.jl"),
+                            l2=[
+                                0.9861501067398692,
+                                0.5932601231318787,
+                                0.6914651918642902,
+                                0.45633443286763237
+                            ],
+                            linf=[
+                                2.3936795222158076,
+                                5.8907408754608515,
+                                4.337103147537311,
+                                2.9436448052630597
+                            ],
+                            tspan=(0.0, 0.05))
+
+        # Ensure that we do not have excessive memory allocations
+        # (e.g., from type instabilities)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
+    end
+
+    @trixi_testset "elixir_shallowwater_exner_channel_mpm.jl" begin
+        @test_trixi_include(joinpath(EXAMPLES_DIR,
+                                     "elixir_shallowwater_exner_channel_mpm.jl"),
+                            l2=[
+                                0.021627221304021577,
+                                0.0008251875449399632,
+                                0.07133184657604669,
+                                2.9459714466880464e-7
+                            ],
+                            linf=[
+                                0.1715300794040595,
+                                0.05307818092229056,
+                                0.57807103428298,
+                                1.2915591585352382e-5
+                            ],
+                            tspan=(0.0, 0.1))
+
+        # Ensure that we do not have excessive memory allocations
+        # (e.g., from type instabilities)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
+    end
+end # Shallow Water Exner
 end # P4estMesh2D
 
 # Clean up afterwards: delete TrixiShallowWater.jl output directory

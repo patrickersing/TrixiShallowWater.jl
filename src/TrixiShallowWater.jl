@@ -20,7 +20,6 @@ include("solvers/subcell_limiters.jl")
 include("solvers/dgsem_p4est/containers.jl")
 include("solvers/dgsem_p4est/dg_2d.jl")
 include("callbacks_stage/callbacks_stage.jl")
-include("callbacks_step/callbacks_step.jl")
 
 # Export types/functions that define the public API of TrixiShallowWater.jl
 export ShallowWaterEquations1D, ShallowWaterEquations2D,
@@ -28,7 +27,8 @@ export ShallowWaterEquations1D, ShallowWaterEquations2D,
        ShallowWaterTwoLayerEquations1D, ShallowWaterTwoLayerEquations2D,
        ShallowWaterMultiLayerEquations1D, ShallowWaterMultiLayerEquations2D,
        ShallowWaterEquationsQuasi1D,
-       ShallowWaterMomentEquations1D, ShallowWaterLinearizedMomentEquations1D
+       ShallowWaterMomentEquations1D, ShallowWaterLinearizedMomentEquations1D,
+       HyperbolicSainteMarieEquations1D
 
 export hydrostatic_reconstruction_chen_noelle, flux_nonconservative_chen_noelle,
        min_max_speed_chen_noelle, flux_hll_chen_noelle,
@@ -39,7 +39,9 @@ export hydrostatic_reconstruction_chen_noelle, flux_nonconservative_chen_noelle,
        flux_nonconservative_audusse_etal, hydrostatic_reconstruction_audusse_etal,
        FluxHydrostaticReconstruction,
        source_term_manning_friction, source_term_newtonian_slip_friction,
-       source_term_bottom_friction
+       source_term_bottom_friction, source_term_hyperbolic_sainte_marie,
+       initial_condition_manufactured, source_terms_manufactured,
+       FluxArtianoEtal, FluxNonConservativeArtianoEtal
 
 export ManningFriction, MeyerPeterMueller, GrassModel, ShieldsStressModel,
        dissipation_roe, water_sediment_height
@@ -51,5 +53,7 @@ export nlayers, eachlayer, nmoments, eachmoment
 export PositivityPreservingLimiterShallowWater, VelocityDesingularization
 
 export IndicatorHennemannGassnerShallowWater
+
+export SourceTermsRain, HortonModel, GreenAmptModel
 
 end
