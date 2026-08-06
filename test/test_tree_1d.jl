@@ -917,14 +917,14 @@ end # 2LSWE
         @test_trixi_include(joinpath(EXAMPLES_DIR,
                                      "elixir_shallowwater_multilayer_beach_amr.jl"),
                             l2=[
-                                1.22570505187571,
-                                4.9581241184022735,
-                                1.161315654378121e-5
+                                1.2279477255799136,
+                                4.956544639816718,
+                                7.1665061086485795e-6
                             ],
                             linf=[
-                                2.4550283772713746,
-                                9.75692621468066,
-                                0.00010020743187588721
+                                2.443603067275829,
+                                9.77064103923972,
+                                0.000116781021658241
                             ],
                             # longer time for the positivity in coarsening to fire
                             tspan=(0.0, 0.85),
@@ -1234,6 +1234,56 @@ end # SWE-Exner
         @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
     end
 end # SWME
+
+@testset "Hyperbolic Sainte-Marie Equations" begin
+    @trixi_testset "elixir_hyperbolic_sainte_marie_ec.jl" begin
+        @test_trixi_include(joinpath(EXAMPLES_DIR,
+                                     "elixir_hyperbolic_sainte_marie_ec.jl"),
+                            l2=[
+                                0.06462593107184302,
+                                0.8787007651797225,
+                                0.21030746715800352,
+                                0.6533500249905079,
+                                8.077199796761241e-10
+                            ],
+                            linf=[
+                                0.11568548500030484,
+                                1.4495042459510463,
+                                0.30648295197901554,
+                                1.222773006933629,
+                                3.279725713234427e-9
+                            ],
+                            # Decrease tolerance of adaptive time stepping to get similar results across different systems
+                            abstol=1e-13, reltol=1e-13, tspan=(0.0, 0.01))
+        # Ensure that we do not have excessive memory allocations
+        # (e.g., from type instabilities)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
+    end
+
+    @trixi_testset "elixir_hyperbolic_sainte_marie_manufactured.jl" begin
+        @test_trixi_include(joinpath(EXAMPLES_DIR,
+                                     "elixir_hyperbolic_sainte_marie_manufactured.jl"),
+                            l2=[
+                                1.261711796959136e-02,
+                                0.008930109765352327,
+                                1.061102585632080e+00,
+                                1.265926590309996e-01,
+                                1.774596690248905e-04
+                            ],
+                            linf=[
+                                6.302570798417761e-02,
+                                0.03640253710382435,
+                                5.503785544059838e+00,
+                                7.249345736369781e-01,
+                                3.639351910953437e-04
+                            ],
+                            # Decrease tolerance of adaptive time stepping to get similar results across different systems
+                            abstol=1e-13, reltol=1e-13)
+        # Ensure that we do not have excessive memory allocations
+        # (e.g., from type instabilities)
+        @test_allocations(Trixi.rhs_hyperbolic!, semi, sol, 1000)
+    end
+end # HYPSM
 end # TreeMesh1D
 
 # Clean up afterwards: delete TrixiShallowWater.jl output directory
